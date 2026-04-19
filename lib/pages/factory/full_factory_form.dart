@@ -68,8 +68,8 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
     'Other',
   ];
 
-  static const double _tempSliderMin = -10;
-  static const double _tempSliderMax = 150;
+  static const double _tempSliderMin = 0;
+  static const double _tempSliderMax = 500;
 
   @override
   void initState() {
@@ -227,7 +227,7 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
               ),
             ),
             Text(
-              '${v.toStringAsFixed(1)} °C',
+              '${v.round()} °C',
               style: theme.textTheme.labelLarge?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w600,
@@ -240,10 +240,10 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
           min: _tempSliderMin,
           max: _tempSliderMax,
           divisions: divisions,
-          label: '${v.toStringAsFixed(1)}°C',
+          label: '${v.round()} °C',
           onChanged: (nv) {
             setState(() {
-              c.text = nv.toStringAsFixed(1);
+              c.text = nv.round().toString();
             });
           },
         ),
@@ -695,8 +695,9 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                       inputFormatters: _unsignedDecimalFormatters,
                       onChanged: (_) => setState(() {}),
                       decoration: deco.copyWith(
-                        labelText: 'Heat output (peak kW)',
+                        labelText: 'Heat Output (kW)',
                         hintText: 'kW',
+                        suffixText: 'kW',
                         prefixIcon: const Icon(Icons.bolt_outlined),
                       ),
                     ),
@@ -709,8 +710,9 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                       inputFormatters: _unsignedDecimalFormatters,
                       onChanged: (_) => setState(() {}),
                       decoration: deco.copyWith(
-                        labelText: 'Flow rate',
+                        labelText: 'Flow Rate (m³/hour)',
                         hintText: 'kg/hr',
+                        suffixText: 'm³/hr',
                         prefixIcon: const Icon(Icons.water_outlined),
                       ),
                     ),
@@ -723,8 +725,9 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                       inputFormatters: _unsignedDecimalFormatters,
                       onChanged: (_) => setState(() {}),
                       decoration: deco.copyWith(
-                        labelText: 'Steam pressure',
+                        labelText: 'Steam Pressure (bar)',
                         hintText: 'bar',
+                        suffixText: 'bar',
                         prefixIcon: const Icon(Icons.speed_outlined),
                       ),
                     ),
@@ -800,8 +803,9 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                       inputFormatters: _unsignedDecimalFormatters,
                       onChanged: (_) => setState(() {}),
                       decoration: deco.copyWith(
-                        labelText: 'Required volume',
-                        hintText: 'per schema',
+                        labelText: 'Required Volume (kW)',
+                        hintText: 'kW',
+                        suffixText: 'kW',
                         prefixIcon: const Icon(Icons.inventory_2_outlined),
                       ),
                     ),
@@ -814,8 +818,9 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                       inputFormatters: _unsignedDecimalFormatters,
                       onChanged: (_) => setState(() {}),
                       decoration: deco.copyWith(
-                        labelText: 'Peak load',
+                        labelText: 'Peak Load (kW)',
                         hintText: 'kW',
+                        suffixText: 'kW',
                         prefixIcon: const Icon(Icons.trending_up_outlined),
                       ),
                     ),
@@ -828,8 +833,9 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                       inputFormatters: _unsignedDecimalFormatters,
                       onChanged: (_) => setState(() {}),
                       decoration: deco.copyWith(
-                        labelText: 'Base load',
+                        labelText: 'Base Load (kW)',
                         hintText: 'kW',
+                        suffixText: 'kW',
                         prefixIcon: const Icon(Icons.trending_flat_outlined),
                       ),
                     ),

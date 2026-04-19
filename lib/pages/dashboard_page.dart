@@ -189,7 +189,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Heat App 🔥', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Thermo Connect 🔥', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
