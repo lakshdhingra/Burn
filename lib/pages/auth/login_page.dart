@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../app_config.dart';
-import '../dashboard_page.dart';
+import '../../app_shell.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
     Navigator.of(
       context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const DashboardPage()));
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const AppShell()));
   }
 
   void _showSnack(String msg) {

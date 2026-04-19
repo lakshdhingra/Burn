@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../app_config.dart';
-import '../dashboard_page.dart';
+import '../../app_shell.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -20,7 +20,7 @@ class _SignupPageState extends State<SignupPage> {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => const DashboardPage(),
+        builder: (_) => const AppShell(),
       ),
     );
   }

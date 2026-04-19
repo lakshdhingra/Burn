@@ -55,6 +55,40 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
   final TextEditingController _peakLoadKwController = TextEditingController();
   final TextEditingController _baseLoadKwController = TextEditingController();
 
+  /// UI-only (not sent to Supabase).
+  String _heatType = 'Hot water';
+
+  /// UI-only (not sent to Supabase).
+  bool _continuousOperation = true;
+
+  static const List<String> _heatTypeOptions = [
+    'Steam',
+    'Hot water',
+    'Thermal oil',
+    'Other',
+  ];
+
+  static const double _tempSliderMin = -10;
+  static const double _tempSliderMax = 150;
+
+  @override
+  void initState() {
+    super.initState();
+    _seedDefaultsIfEmpty();
+  }
+
+  void _seedDefaultsIfEmpty() {
+    if (_temperatureController.text.isEmpty) _temperatureController.text = '60.0';
+    if (_outletTempMinController.text.isEmpty) _outletTempMinController.text = '50.0';
+    if (_outletTempMaxController.text.isEmpty) _outletTempMaxController.text = '75.0';
+    if (_minAcceptableTempController.text.isEmpty) {
+      _minAcceptableTempController.text = '40.0';
+    }
+    if (_maxAcceptableTempController.text.isEmpty) {
+      _maxAcceptableTempController.text = '55.0';
+    }
+  }
+
   @override
   void dispose() {
     _temperatureController.dispose();
@@ -124,13 +158,143 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
     );
   }
 
-  List<TextInputFormatter> get _signedDecimalFormatters => [
-        FilteringTextInputFormatter.allow(RegExp(r'[-0-9.,]')),
-      ];
-
   List<TextInputFormatter> get _unsignedDecimalFormatters => [
         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
       ];
+
+  Widget _sectionCard({
+    required ThemeData theme,
+    required String title,
+    String? subtitle,
+    required Widget child,
+  }) {
+    final cs = theme.colorScheme;
+    return Card(
+      elevation: 0,
+      color: cs.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.45)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _temperatureSlider(
+    ThemeData theme,
+    String label,
+    TextEditingController c,
+  ) {
+    final raw = _parseDouble(c.text);
+    final v = (raw ?? (_tempSliderMin + _tempSliderMax) / 2)
+        .clamp(_tempSliderMin, _tempSliderMax);
+    final divisions =
+        ((_tempSliderMax - _tempSliderMin) * 2).round().clamp(1, 320);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: theme.textTheme.titleSmall,
+              ),
+            ),
+            Text(
+              '${v.toStringAsFixed(1)} °C',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: v,
+          min: _tempSliderMin,
+          max: _tempSliderMax,
+          divisions: divisions,
+          label: '${v.toStringAsFixed(1)}°C',
+          onChanged: (nv) {
+            setState(() {
+              c.text = nv.toStringAsFixed(1);
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _heatProfileCard(ThemeData theme) {
+    final deco = _inputDecoration(theme);
+    return _sectionCard(
+      theme: theme,
+      title: 'Heat profile',
+      subtitle: 'Type and operation (preview only — not saved)',
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InputDecorator(
+            decoration: deco.copyWith(
+              labelText: 'Heat type',
+              prefixIcon: const Icon(Icons.category_outlined),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _heatType,
+                isExpanded: true,
+                borderRadius: BorderRadius.circular(12),
+                items: _heatTypeOptions
+                    .map(
+                      (e) =>
+                          DropdownMenuItem<String>(value: e, child: Text(e)),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v == null) return;
+                  setState(() => _heatType = v);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          SwitchListTile(
+            value: _continuousOperation,
+            onChanged: (v) => setState(() => _continuousOperation = v),
+            title: const Text('Continuous operation'),
+            subtitle: const Text('Fewer long shutdowns'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _submit() async {
     if (_submitting) return;
@@ -487,92 +651,43 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerLow,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Outlet temperatures',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _temperatureController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      inputFormatters: _signedDecimalFormatters,
-                      onChanged: (_) => setState(() {}),
-                      decoration: deco.copyWith(
-                        labelText: 'Outlet temp (typical)',
-                        hintText: '°C',
-                        prefixIcon: const Icon(Icons.thermostat_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _outletTempMinController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      inputFormatters: _signedDecimalFormatters,
-                      onChanged: (_) => setState(() {}),
-                      decoration: deco.copyWith(
-                        labelText: 'Outlet temp (min)',
-                        hintText: '°C',
-                        prefixIcon: const Icon(Icons.arrow_downward_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _outletTempMaxController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      inputFormatters: _signedDecimalFormatters,
-                      onChanged: (_) => setState(() {}),
-                      decoration: deco.copyWith(
-                        labelText: 'Outlet temp (max)',
-                        hintText: '°C',
-                        prefixIcon: const Icon(Icons.arrow_upward_outlined),
-                      ),
-                    ),
-                  ],
-                ),
+            _heatProfileCard(theme),
+            const SizedBox(height: 12),
+            _sectionCard(
+              theme: theme,
+              title: 'Outlet temperatures',
+              subtitle: 'Adjust with sliders (°C)',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _temperatureSlider(
+                    theme,
+                    'Outlet temp (typical)',
+                    _temperatureController,
+                  ),
+                  const SizedBox(height: 8),
+                  _temperatureSlider(
+                    theme,
+                    'Outlet temp (min)',
+                    _outletTempMinController,
+                  ),
+                  const SizedBox(height: 8),
+                  _temperatureSlider(
+                    theme,
+                    'Outlet temp (max)',
+                    _outletTempMaxController,
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerLow,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Capacity & steam',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
+            _sectionCard(
+              theme: theme,
+              title: 'Capacity & steam',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
                       controller: _volumeController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -615,7 +730,6 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                     ),
                   ],
                 ),
-              ),
             ),
           ],
         ),
@@ -642,92 +756,43 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerLow,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Temperature',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _temperatureController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      inputFormatters: _signedDecimalFormatters,
-                      onChanged: (_) => setState(() {}),
-                      decoration: deco.copyWith(
-                        labelText: 'Required temperature',
-                        hintText: '°C',
-                        prefixIcon: const Icon(Icons.thermostat_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _minAcceptableTempController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      inputFormatters: _signedDecimalFormatters,
-                      onChanged: (_) => setState(() {}),
-                      decoration: deco.copyWith(
-                        labelText: 'Min acceptable temperature',
-                        hintText: '°C',
-                        prefixIcon: const Icon(Icons.arrow_downward_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _maxAcceptableTempController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      inputFormatters: _signedDecimalFormatters,
-                      onChanged: (_) => setState(() {}),
-                      decoration: deco.copyWith(
-                        labelText: 'Max acceptable temperature',
-                        hintText: '°C',
-                        prefixIcon: const Icon(Icons.arrow_upward_outlined),
-                      ),
-                    ),
-                  ],
-                ),
+            _heatProfileCard(theme),
+            const SizedBox(height: 12),
+            _sectionCard(
+              theme: theme,
+              title: 'Temperature',
+              subtitle: 'Adjust with sliders (°C)',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _temperatureSlider(
+                    theme,
+                    'Required temperature',
+                    _temperatureController,
+                  ),
+                  const SizedBox(height: 8),
+                  _temperatureSlider(
+                    theme,
+                    'Min acceptable temperature',
+                    _minAcceptableTempController,
+                  ),
+                  const SizedBox(height: 8),
+                  _temperatureSlider(
+                    theme,
+                    'Max acceptable temperature',
+                    _maxAcceptableTempController,
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerLow,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Volume & load',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
+            _sectionCard(
+              theme: theme,
+              title: 'Volume & load',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
                       controller: _volumeController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -770,7 +835,6 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                     ),
                   ],
                 ),
-              ),
             ),
           ],
         ),
@@ -821,6 +885,14 @@ class _FullFactoryFormPageState extends State<FullFactoryFormPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _reviewRow(theme, 'Role', roleLabel),
+                  const Divider(height: 24),
+                  _reviewRow(theme, 'Heat type', _heatType),
+                  const Divider(height: 24),
+                  _reviewRow(
+                    theme,
+                    'Continuous operation',
+                    _continuousOperation ? 'Yes' : 'No',
+                  ),
                   const Divider(height: 24),
                   if (_role == 'source') ...[
                     _reviewRow(

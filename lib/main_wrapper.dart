@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_config.dart';
+import 'app_shell.dart';
 import 'pages/auth/login_page.dart';
-import 'pages/dashboard_page.dart';
 
 class MainWrapper extends StatelessWidget {
   const MainWrapper({super.key});
@@ -15,7 +15,7 @@ class MainWrapper extends StatelessWidget {
 
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
-      return const DashboardPage();
+      return const AppShell();
     }
     return const LoginPage();
   }
