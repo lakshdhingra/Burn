@@ -34,6 +34,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          brightness: Brightness.dark,
+          seedColor: Colors.teal,
+          primary: Colors.tealAccent,
+          secondary: Colors.cyanAccent,
+          surface: const Color(0xFF0F172A), // Tailwind Slate-900 equivalent
+          background: const Color(0xFF0F172A),
+        ),
+        fontFamily: 'Inter', // Often available automatically structurally or defaults nicely
+      ),
       home: const MainWrapper(),
     );
   }

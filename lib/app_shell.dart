@@ -19,18 +19,30 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        alignment: Alignment.center,
-        children: const [
-          DashboardPage(),
-          MatchesPage(),
-          FullFactoryFormPage(),
-          MapPage(),
-          ProfilePage(),
-        ],
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF0F172A), // Dark Slate/Blue
+            Color(0xFF0D9488), // Teal
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: IndexedStack(
+          index: _index,
+          alignment: Alignment.center,
+          children: const [
+            DashboardPage(),
+            MatchesPage(),
+            FullFactoryFormPage(),
+            MapPage(),
+            ProfilePage(),
+          ],
+        ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
@@ -61,6 +73,7 @@ class _AppShellState extends State<AppShell> {
             label: 'Profile',
           ),
         ],
+      ),
       ),
     );
   }
